@@ -1,8 +1,8 @@
-# Voci Video Studio V3
+# Voci Video Studio V3.1
 
 Webapp statica per GitHub Pages: articolo + foto reali → storyboard → voce naturale ElevenLabs → Reel finale.
 
-## Novità V3
+## Novità V3.1
 - Rendering locale del Reel nel browser.
 - Voce ElevenLabs sincronizzata nel video.
 - Sottotitoli impressi automaticamente.
@@ -33,3 +33,7 @@ La chiave ElevenLabs deve restare esclusivamente nel Secret `ELEVENLABS_API_KEY`
 
 ## Nota sul rendering
 Il rendering avviene sul dispositivo e richiede alcuni secondi/minuti a seconda di durata, risoluzione e potenza del PC. La conversione MP4 via FFmpeg viene caricata da CDN solo quando necessaria; se non è disponibile, il video WebM resta comunque scaricabile.
+
+
+### Libreria musicale integrata
+La V3.1 include quattro basi originali: Cronaca sobria, Editoriale moderna, Città soft e Istituzionale soft. È sempre possibile scegliere Nessuna musica oppure caricare un MP3/WAV personale.

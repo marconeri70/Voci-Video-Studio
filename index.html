@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f1115" />
-  <meta name="description" content="Voci Video Studio V3: articolo + foto reali → storyboard, voce naturale e Reel finale." />
-  <title>Voci Video Studio V3</title>
+  <meta name="description" content="Voci Video Studio V3.1: articolo + foto reali → storyboard, voce naturale e Reel finale." />
+  <title>Voci Video Studio V3.1</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./css/style.css" />
@@ -15,7 +15,7 @@
   <div class="brand">
     <img src="./assets/logo.svg" alt="Voci Video Studio" class="brandLogo" />
     <div>
-      <div class="brandLine"><h1>Voci Video Studio</h1><span class="versionBadge">V3</span></div>
+      <div class="brandLine"><h1>Voci Video Studio</h1><span class="versionBadge">V3.1</span></div>
       <p>Articolo + foto reali → storyboard, voce naturale e Reel finale.</p>
     </div>
   </div>
@@ -132,7 +132,31 @@
         <label class="checkLine"><input id="useSubtitles" type="checkbox" checked /> Sottotitoli impressi nel video</label>
       </div>
 
-      <div class="field topSpace"><label for="musicFile">Musica di sottofondo (facoltativa, MP3/WAV)</label><input id="musicFile" type="file" accept="audio/*" /></div>
+      <div class="musicPanel topSpace">
+        <div class="row2">
+          <div class="field">
+            <label for="musicPreset">Musica di sottofondo</label>
+            <select id="musicPreset">
+              <option value="none">Nessuna musica</option>
+              <option value="cronaca" selected>Cronaca sobria</option>
+              <option value="editoriale">Editoriale moderna</option>
+              <option value="citta">Città soft</option>
+              <option value="istituzionale">Istituzionale soft</option>
+              <option value="custom">Carica un mio MP3/WAV</option>
+            </select>
+          </div>
+          <div class="field hidden" id="customMusicWrap">
+            <label for="musicFile">File personale (solo se scegli “Carica un mio MP3/WAV”)</label>
+            <input id="musicFile" type="file" accept="audio/*" />
+          </div>
+        </div>
+        <div class="actions compactActions">
+          <button class="secondary" id="previewMusic">▶ Ascolta musica</button>
+          <button class="ghost" id="stopMusic">■ Stop</button>
+        </div>
+        <audio id="musicPreviewPlayer" class="audioPlayer" controls preload="metadata"></audio>
+        <div class="hint">Le quattro basi incluse sono originali e integrate nel progetto. Puoi comunque caricare una tua traccia.</div>
+      </div>
       <div class="voiceSliders">
         <label>Volume voce <input id="voiceVolume" type="range" min="0" max="100" value="100" /><span id="voiceVolumeValue">100%</span></label>
         <label>Volume musica <input id="musicVolume" type="range" min="0" max="40" value="12" /><span id="musicVolumeValue">12%</span></label>
@@ -153,7 +177,7 @@
     <h2>5. Anteprima Reel</h2>
     <div class="phoneWrap"><div class="phone"><canvas id="canvas" width="1080" height="1920"></canvas></div></div>
     <div class="overlayControls"><button class="primary" id="play">▶ Anteprima</button><button class="secondary" id="export">⬇ Esporta storyboard</button></div>
-    <div class="miniInfo"><strong>V3 — Reel completo</strong><span>Voce ElevenLabs, sottotitoli, musica facoltativa, intro/outro e rendering finale direttamente dal browser.</span></div>
+    <div class="miniInfo"><strong>V3.1 — Reel completo</strong><span>Voce ElevenLabs, sottotitoli, libreria musicale integrata, intro/outro e rendering finale direttamente dal browser.</span></div>
     <div class="footerNote">La chiave ElevenLabs resta nel Worker Cloudflare. Le foto e il rendering del video restano sul dispositivo.</div>
   </aside>
 </main>

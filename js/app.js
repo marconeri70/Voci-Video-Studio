@@ -15,6 +15,13 @@ let finalVideoBlob = null;
 let finalVideoUrl = '';
 let musicObjectUrl = '';
 
+const builtInMusic = {
+  cronaca: './assets/music/cronaca-sobria.mp3',
+  editoriale: './assets/music/editoriale-moderna.mp3',
+  citta: './assets/music/citta-soft.mp3',
+  istituzionale: './assets/music/istituzionale-soft.mp3',
+};
+
 const API_BASE = String(window.VVS_CONFIG?.apiBaseUrl || '').replace(/\/$/, '');
 
 const stopwords = new Set(
@@ -140,7 +147,7 @@ async function drawScene(scene, progress = 0, index = 0) {
   ctx.textBaseline = 'top'; lines.forEach((line) => { ctx.font = `700 ${fontSize}px Arial`; ctx.fillStyle = 'rgba(0,0,0,.48)'; ctx.fillText(line, padding + 3, y + 3); ctx.fillStyle = '#fff'; ctx.fillText(line, padding, y); y += fontSize * 1.18; });
   ctx.font = `700 ${Math.max(24, canvas.width * .025)}px Arial`; ctx.fillStyle = '#fff'; ctx.fillText('VOCI DI CASSINO', padding, canvas.height - padding * 1.25); ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillText(`${index + 1}/${Math.max(1, scenes.length)}`, canvas.width - padding, canvas.height - padding * 1.25); ctx.textAlign = 'left';
 }
-async function drawIdle() { fitCanvas(); await drawScene(scenes[0] || { text: $('#title').value || 'Voci Video Studio V3', img: null }, 0, 0); }
+async function drawIdle() { fitCanvas(); await drawScene(scenes[0] || { text: $('#title').value || 'Voci Video Studio V3.1', img: null }, 0, 0); }
 
 async function play() {
   if (!scenes.length) { $('#status').textContent = 'Crea prima lo storyboard.'; return; }
@@ -184,13 +191,54 @@ function downloadVoice() { if (!generatedAudioBlob || !audioBlobUrl) return; con
 function setVoiceTab(tab) { const cloud = tab === 'cloud'; $('#tabCloud').classList.toggle('active', cloud); $('#tabBrowser').classList.toggle('active', !cloud); $('#cloudPanel').classList.toggle('hidden', !cloud); $('#browserPanel').classList.toggle('hidden', cloud); }
 
 function safeFileName(s) { return String(s || 'voci-video').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'voci-video'; }
-function getProjectData() { return { app: 'Voci Video Studio', version: '3.0', article: $('#article').value, title: $('#title').value, cta: $('#cta').value, duration: $('#duration').value, format: $('#format').value, style: $('#style').value, narration: $('#narration').value, render: { quality: $('#renderQuality').value, fps: $('#fps').value, mode: $('#renderMode').value, intro: $('#useIntro').checked, outro: $('#useOutro').checked, subtitles: $('#useSubtitles').checked, voiceVolume: $('#voiceVolume').value, musicVolume: $('#musicVolume').value }, voice: { cloud_voice_id: $('#cloudVoice').value, model: $('#cloudModel').value, preset: $('#voicePreset').value, settings: getCloudVoiceSettings() }, scenes: scenes.map(({ text, seconds, img }) => ({ text, seconds, img })) }; }
+function getProjectData() { return { app: 'Voci Video Studio', version: '3.1', article: $('#article').value, title: $('#title').value, cta: $('#cta').value, duration: $('#duration').value, format: $('#format').value, style: $('#style').value, narration: $('#narration').value, render: { quality: $('#renderQuality').value, fps: $('#fps').value, mode: $('#renderMode').value, intro: $('#useIntro').checked, outro: $('#useOutro').checked, subtitles: $('#useSubtitles').checked, voiceVolume: $('#voiceVolume').value, musicVolume: $('#musicVolume').value, musicPreset: $('#musicPreset').value }, voice: { cloud_voice_id: $('#cloudVoice').value, model: $('#cloudModel').value, preset: $('#voicePreset').value, settings: getCloudVoiceSettings() }, scenes: scenes.map(({ text, seconds, img }) => ({ text, seconds, img })) }; }
 function saveProjectFile() { const blob = new Blob([JSON.stringify(getProjectData(), null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${safeFileName($('#title').value || 'voci-video-progetto')}.vvs.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
-async function loadProjectFile(file) { try { const data = JSON.parse(await file.text()); $('#article').value = data.article || ''; $('#title').value = data.title || ''; $('#cta').value = data.cta || $('#cta').value; $('#duration').value = data.duration || '45'; $('#format').value = data.format || '9:16'; $('#style').value = data.style || 'news'; $('#narration').value = data.narration || ''; scenes = Array.isArray(data.scenes) ? data.scenes.map(s => ({ text: s.text || '', seconds: Number(s.seconds) || 6, img: s.img || null })) : []; if (data.render) { $('#renderQuality').value = data.render.quality || '720'; $('#fps').value = data.render.fps || '25'; $('#renderMode').value = data.render.mode || 'adapt'; $('#useIntro').checked = data.render.intro !== false; $('#useOutro').checked = data.render.outro !== false; $('#useSubtitles').checked = data.render.subtitles !== false; $('#voiceVolume').value = data.render.voiceVolume || '100'; $('#musicVolume').value = data.render.musicVolume || '12'; } renderStory(); updateCharCount(); bindRangeLabels(); await drawIdle(); $('#status').textContent = 'Progetto caricato. Rigenera la voce naturale prima del rendering finale.'; } catch (e) { $('#status').textContent = `Impossibile aprire il progetto: ${e.message}`; } }
+async function loadProjectFile(file) { try { const data = JSON.parse(await file.text()); $('#article').value = data.article || ''; $('#title').value = data.title || ''; $('#cta').value = data.cta || $('#cta').value; $('#duration').value = data.duration || '45'; $('#format').value = data.format || '9:16'; $('#style').value = data.style || 'news'; $('#narration').value = data.narration || ''; scenes = Array.isArray(data.scenes) ? data.scenes.map(s => ({ text: s.text || '', seconds: Number(s.seconds) || 6, img: s.img || null })) : []; if (data.render) { $('#renderQuality').value = data.render.quality || '720'; $('#fps').value = data.render.fps || '25'; $('#renderMode').value = data.render.mode || 'adapt'; $('#useIntro').checked = data.render.intro !== false; $('#useOutro').checked = data.render.outro !== false; $('#useSubtitles').checked = data.render.subtitles !== false; $('#voiceVolume').value = data.render.voiceVolume || '100'; $('#musicVolume').value = data.render.musicVolume || '12'; $('#musicPreset').value = data.render.musicPreset || 'cronaca'; updateMusicUi(); } renderStory(); updateCharCount(); bindRangeLabels(); await drawIdle(); $('#status').textContent = 'Progetto caricato. Rigenera la voce naturale prima del rendering finale.'; } catch (e) { $('#status').textContent = `Impossibile aprire il progetto: ${e.message}`; } }
 function exportStoryboard() { const data = getProjectData(); data.scenes = data.scenes.map(({ text, seconds }) => ({ text, seconds })); const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'voci-video-storyboard-v3.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
 
-function clearAll() { stopBrowserSpeech(); $('#article').value = ''; $('#title').value = ''; $('#images').value = ''; $('#narration').value = ''; $('#musicFile').value = ''; scenes = []; files = []; generatedAudioBlob = null; if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl); audioBlobUrl = ''; if (musicObjectUrl) URL.revokeObjectURL(musicObjectUrl); musicObjectUrl = ''; resetFinalVideo(); renderStory(); updateCharCount(); drawIdle(); $('#status').textContent = 'Azzerato.'; }
+function clearAll() { stopBrowserSpeech(); stopMusicPreview(); $('#article').value = ''; $('#title').value = ''; $('#images').value = ''; $('#narration').value = ''; $('#musicFile').value = ''; $('#musicPreset').value = 'cronaca'; updateMusicUi(); scenes = []; files = []; generatedAudioBlob = null; if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl); audioBlobUrl = ''; if (musicObjectUrl) URL.revokeObjectURL(musicObjectUrl); musicObjectUrl = ''; resetFinalVideo(); renderStory(); updateCharCount(); drawIdle(); $('#status').textContent = 'Azzerato.'; }
 function loadDemo() { $('#article').value = 'A Cassino cresce l’attenzione dei cittadini sulla manutenzione urbana. Le segnalazioni riguardano strade, verde pubblico, illuminazione e decoro. Il tema non è soltanto intervenire quando il problema diventa evidente, ma programmare controlli e manutenzione con continuità. I cittadini chiedono tempi chiari, trasparenza sugli interventi e una comunicazione più puntuale. Voci di Cassino continuerà a raccogliere segnalazioni e a verificare i fatti, distinguendo sempre tra problemi documentati, responsabilità accertate e opinioni.'; $('#title').value = 'CASSINO, MANUTENZIONE E SEGNALAZIONI: I CITTADINI CHIEDONO RISPOSTE'; build(); }
+
+
+function updateMusicUi() {
+  const custom = $('#musicPreset').value === 'custom';
+  const wrap = $('#customMusicWrap');
+  if (wrap) wrap.classList.toggle('hidden', !custom);
+}
+function stopMusicPreview() {
+  const player = $('#musicPreviewPlayer');
+  if (!player) return;
+  player.pause();
+  try { player.currentTime = 0; } catch {}
+  if (musicObjectUrl) { URL.revokeObjectURL(musicObjectUrl); musicObjectUrl = ''; }
+  if ($('#musicPreset').value === 'custom') player.removeAttribute('src');
+}
+function getSelectedMusicUrl({ forPreview = false } = {}) {
+  const preset = $('#musicPreset').value;
+  if (preset === 'none') return '';
+  if (preset === 'custom') {
+    const file = $('#musicFile').files?.[0];
+    if (!file) return '';
+    if (forPreview) {
+      if (musicObjectUrl) URL.revokeObjectURL(musicObjectUrl);
+      musicObjectUrl = URL.createObjectURL(file);
+      return musicObjectUrl;
+    }
+    return URL.createObjectURL(file);
+  }
+  return builtInMusic[preset] || '';
+}
+async function previewSelectedMusic() {
+  const preset = $('#musicPreset').value;
+  if (preset === 'none') { $('#renderStatus').textContent = 'Hai scelto “Nessuna musica”.'; return; }
+  const url = getSelectedMusicUrl({ forPreview: true });
+  if (!url) { $('#renderStatus').textContent = 'Seleziona un file MP3/WAV personale oppure scegli una base inclusa.'; return; }
+  const player = $('#musicPreviewPlayer');
+  player.src = url; player.loop = true; player.volume = Math.min(1, Number($('#musicVolume').value) / 100);
+  player.load();
+  try { await player.play(); $('#renderStatus').textContent = 'Anteprima musica in riproduzione.'; }
+  catch (e) { $('#renderStatus').textContent = `Non riesco ad avviare l’anteprima musicale: ${e.message}`; }
+}
 
 function getAudioDuration(blob) { return new Promise((resolve) => { if (!blob) return resolve(0); const url = URL.createObjectURL(blob), audio = new Audio(); audio.preload = 'metadata'; audio.onloadedmetadata = () => { const d = Number.isFinite(audio.duration) ? audio.duration : 0; URL.revokeObjectURL(url); resolve(d); }; audio.onerror = () => { URL.revokeObjectURL(url); resolve(0); }; audio.src = url; }); }
 function splitCaptionChunks(text, maxWords = 8) { const words = naturalizeNarration(text).split(/\s+/).filter(Boolean); const chunks = []; for (let i = 0; i < words.length; i += maxWords) chunks.push(words.slice(i, i + maxWords).join(' ')); return chunks; }
@@ -246,7 +294,7 @@ async function renderFullVideo() {
     const imageCache = await makeImageCache(); const captionChunks = splitCaptionChunks($('#narration').value, 8); setRenderProgress(4);
     const canvasStream = rc.captureStream(fps); audioCtx = new (window.AudioContext || window.webkitAudioContext)(); await audioCtx.resume(); const audioDest = audioCtx.createMediaStreamDestination();
     voiceUrl = URL.createObjectURL(generatedAudioBlob); voiceEl = new Audio(voiceUrl); voiceEl.preload = 'auto'; const voiceSrc = audioCtx.createMediaElementSource(voiceEl); const voiceGain = audioCtx.createGain(); voiceGain.gain.value = Number($('#voiceVolume').value) / 100; voiceSrc.connect(voiceGain).connect(audioDest);
-    const musicFile = $('#musicFile').files?.[0]; if (musicFile) { musicUrl = URL.createObjectURL(musicFile); musicEl = new Audio(musicUrl); musicEl.preload = 'auto'; musicEl.loop = true; const musicSrc = audioCtx.createMediaElementSource(musicEl); const musicGain = audioCtx.createGain(); musicGain.gain.value = Number($('#musicVolume').value) / 100; musicSrc.connect(musicGain).connect(audioDest); }
+    const musicPreset = $('#musicPreset').value; if (musicPreset !== 'none') { musicUrl = getSelectedMusicUrl(); if (!musicUrl && musicPreset === 'custom') throw new Error('Hai scelto musica personale ma non hai caricato alcun MP3/WAV.'); if (musicUrl) { musicEl = new Audio(musicUrl); musicEl.preload = 'auto'; musicEl.loop = true; const musicSrc = audioCtx.createMediaElementSource(musicEl); const musicGain = audioCtx.createGain(); musicGain.gain.value = Number($('#musicVolume').value) / 100; musicSrc.connect(musicGain).connect(audioDest); } }
     const combined = new MediaStream([...canvasStream.getVideoTracks(), ...audioDest.stream.getAudioTracks()]); const mimeType = chooseRecorderMime(); const recorder = new MediaRecorder(combined, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: quality === 1080 ? 10000000 : 5500000, audioBitsPerSecond: 128000 }); const chunks = []; recorder.ondataavailable = e => { if (e.data?.size) chunks.push(e.data); };
     const stopped = new Promise(resolve => { recorder.onstop = resolve; }); recorder.start(1000); const renderStart = performance.now(); if (musicEl) { musicEl.currentTime = 0; try { await musicEl.play(); } catch {} }
     const voiceTimer = setTimeout(() => { voiceEl.currentTime = 0; voiceEl.play().catch(() => {}); }, intro * 1000);
@@ -262,10 +310,10 @@ async function renderFullVideo() {
 function downloadFinalVideo() { if (!finalVideoBlob || !finalVideoUrl) return; const ext = /mp4/i.test(finalVideoBlob.type) ? 'mp4' : 'webm'; const a = document.createElement('a'); a.href = finalVideoUrl; a.download = `${safeFileName($('#title').value || 'voci-di-cassino-reel')}.${ext}`; a.click(); }
 
 function bindRangeLabels() { $('#expressivenessValue').textContent = $('#expressiveness').value; $('#cloudSpeedValue').textContent = `${(Number($('#cloudSpeed').value) / 100).toFixed(2).replace('.', ',')}×`; $('#browserRateValue').textContent = `${(Number($('#browserRate').value) / 100).toFixed(2).replace('.', ',')}×`; $('#voiceVolumeValue').textContent = `${$('#voiceVolume').value}%`; $('#musicVolumeValue').textContent = `${$('#musicVolume').value}%`; }
-$('#expressiveness').addEventListener('input', bindRangeLabels); $('#cloudSpeed').addEventListener('input', bindRangeLabels); $('#browserRate').addEventListener('input', bindRangeLabels); $('#voiceVolume').addEventListener('input', bindRangeLabels); $('#musicVolume').addEventListener('input', bindRangeLabels);
+$('#expressiveness').addEventListener('input', bindRangeLabels); $('#cloudSpeed').addEventListener('input', bindRangeLabels); $('#browserRate').addEventListener('input', bindRangeLabels); $('#voiceVolume').addEventListener('input', bindRangeLabels); $('#musicVolume').addEventListener('input', () => { bindRangeLabels(); const p = $('#musicPreviewPlayer'); if (p) p.volume = Math.min(1, Number($('#musicVolume').value) / 100); }); $('#musicPreset').addEventListener('change', () => { stopMusicPreview(); updateMusicUi(); }); $('#previewMusic').onclick = previewSelectedMusic; $('#stopMusic').onclick = stopMusicPreview;
 
 $('#build').onclick = build; $('#play').onclick = play; $('#export').onclick = exportStoryboard; $('#format').onchange = drawIdle; $('#clear').onclick = clearAll; $('#demo').onclick = loadDemo; $('#syncNarration').onclick = syncNarration; $('#narration').addEventListener('input', updateCharCount); $('#tabCloud').onclick = () => setVoiceTab('cloud'); $('#tabBrowser').onclick = () => setVoiceTab('browser'); $('#generateVoice').onclick = generateNaturalVoice; $('#testVoice').onclick = testNaturalVoice; $('#refreshVoices').onclick = loadCloudVoices; $('#downloadVoice').onclick = downloadVoice; $('#speak').onclick = speakBrowser; $('#stopSpeak').onclick = stopBrowserSpeech; $('#saveProject').onclick = saveProjectFile; $('#loadProject').addEventListener('change', e => { const f = e.target.files?.[0]; if (f) loadProjectFile(f); e.target.value = ''; }); $('#renderVideo').onclick = renderFullVideo; $('#downloadVideo').onclick = downloadFinalVideo;
 
 window.addEventListener('resize', drawIdle);
-window.addEventListener('load', () => { drawIdle(); updateCharCount(); loadBrowserVoices(); loadCloudVoices(); bindRangeLabels(); });
+window.addEventListener('load', () => { drawIdle(); updateCharCount(); loadBrowserVoices(); loadCloudVoices(); bindRangeLabels(); updateMusicUi(); });
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = loadBrowserVoices;
