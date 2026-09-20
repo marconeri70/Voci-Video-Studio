@@ -1,12 +1,12 @@
 {
-  "name": "Voci Video Studio V2",
+  "name": "Voci Video Studio",
   "short_name": "Voci Studio",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f1115",
   "theme_color": "#0f1115",
-  "description": "Articolo + foto reali → storyboard, Reel e voce narrante naturale.",
+  "description": "Articolo + foto reali → storyboard e Reel.",
   "icons": [
     {
       "src": "./assets/logo.svg",
