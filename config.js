@@ -2,5 +2,5 @@
 // Dopo aver pubblicato il Worker Cloudflare, incolla qui il suo URL, senza slash finale.
 // Esempio: apiBaseUrl: 'https://voci-video-voice.nomeutente.workers.dev'
 window.VVS_CONFIG = {
-  apiBaseUrl: ''
+  apiBaseUrl: 'https://voci-video-studio.vocidicassino.workers.dev'
 };
