@@ -1,4 +1,4 @@
-# Voci Video Studio V2.2
+# Voci Video Studio V2.3
 
 Webapp pronta per GitHub Pages, con nuova sezione **voce narrante naturale**.
 
@@ -91,4 +91,4 @@ Non inserire mai la chiave ElevenLabs nei file del frontend.
 
 
 ## Se compare ancora la vecchia interfaccia
-Dopo aver caricato tutti i file, apri una volta `reset.html` dal sito GitHub Pages. La pagina elimina il vecchio service worker/cache e riapre automaticamente la V2.2.
+Dopo aver caricato tutti i file, apri una volta `reset.html` dal sito GitHub Pages. La pagina elimina il vecchio service worker/cache e riapre automaticamente la V2.3.

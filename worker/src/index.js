@@ -43,17 +43,43 @@ export default {
       }
 
       if (url.pathname === '/voices' && request.method === 'GET') {
-        const response = await elevenRequest('/v2/voices?page_size=50', env, { headers: { Accept: 'application/json' } });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) return json({ error: data?.detail?.message || data?.detail || 'Errore nel caricamento voci ElevenLabs.' }, response.status, cors);
+        // Leggiamo anche il piano: sul tier Free le voci della Voice Library / Professional
+        // non sono utilizzabili via API, anche quando compaiono tra le voci salvate.
+        const [voicesResponse, subResponse] = await Promise.all([
+          elevenRequest('/v2/voices?page_size=100', env, { headers: { Accept: 'application/json' } }),
+          elevenRequest('/v1/user/subscription', env, { headers: { Accept: 'application/json' } }),
+        ]);
 
-        const voices = (data.voices || []).map((voice) => ({
+        const data = await voicesResponse.json().catch(() => ({}));
+        if (!voicesResponse.ok) {
+          const detail = data?.detail?.message || (typeof data?.detail === 'string' ? data.detail : '') || 'Errore nel caricamento voci ElevenLabs.';
+          return json({ error: detail }, voicesResponse.status, cors);
+        }
+
+        const subscription = await subResponse.json().catch(() => ({}));
+        const tier = String(subscription?.tier || 'unknown').toLowerCase();
+        const isFree = tier === 'free';
+
+        let voices = (data.voices || []).map((voice) => ({
           voice_id: voice.voice_id,
           name: voice.name,
-          category: voice.category,
+          category: voice.category || '',
           labels: voice.labels || {},
         }));
-        return json({ voices }, 200, cors);
+
+        const before = voices.length;
+        if (isFree) {
+          // Le Professional/Voice Library non sono disponibili via API sul piano Free.
+          // Manteniamo premade/default/legacy/generated e altre voci dell'account non Professional.
+          voices = voices.filter((voice) => String(voice.category || '').toLowerCase() !== 'professional');
+        }
+
+        return json({
+          voices,
+          tier,
+          filtered: before - voices.length,
+          note: isFree ? 'Sul piano Free sono escluse le voci Professional/Voice Library non utilizzabili via API.' : '',
+        }, 200, cors);
       }
 
       if (url.pathname === '/tts' && request.method === 'POST') {
@@ -88,7 +114,11 @@ export default {
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
-          return json({ error: data?.detail?.message || data?.detail || `ElevenLabs: errore ${response.status}` }, response.status, cors);
+          let detail = data?.detail?.message || '';
+          if (!detail && typeof data?.detail === 'string') detail = data.detail;
+          if (!detail && data?.detail?.status) detail = String(data.detail.status);
+          if (!detail) detail = `ElevenLabs: errore ${response.status}`;
+          return json({ error: detail, status: response.status }, response.status, cors);
         }
 
         const headers = new Headers(cors);

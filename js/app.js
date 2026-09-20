@@ -391,8 +391,10 @@ async function loadCloudVoices() {
     select.innerHTML = '';
 
     if (!voices.length) {
-      select.innerHTML = '<option value="">Nessuna voce disponibile</option>';
-      throw new Error('Nessuna voce disponibile nell’account ElevenLabs.');
+      select.innerHTML = '<option value="">Nessuna voce API compatibile</option>';
+      throw new Error(data.tier === 'free'
+        ? 'Sul piano Free non risultano voci compatibili via API. Apri ElevenLabs e aggiungi/usa una voce premade disponibile nel tuo account.'
+        : 'Nessuna voce disponibile nell’account ElevenLabs.');
     }
 
     voices.forEach((voice) => {
@@ -400,12 +402,14 @@ async function loadCloudVoices() {
       option.value = voice.voice_id;
       const accent = voice.labels?.accent ? ` • ${voice.labels.accent}` : '';
       const useCase = voice.labels?.use_case ? ` • ${voice.labels.use_case}` : '';
-      option.textContent = `${voice.name || 'Voce'}${accent}${useCase}`;
+      const category = voice.category ? ` • ${voice.category}` : '';
+      option.textContent = `${voice.name || 'Voce'}${category}${accent}${useCase}`;
       select.appendChild(option);
     });
 
-    setCloudState(true, 'Cloud connesso');
-    $('#voiceStatus').textContent = `${voices.length} voci caricate. Prova il preset “Giornalistica naturale”.`;
+    setCloudState(true, data.tier === 'free' ? 'Cloud connesso • Free' : 'Cloud connesso');
+    const filteredText = data.filtered ? ` ${data.filtered} voci Professional escluse perché non utilizzabili via API sul piano Free.` : '';
+    $('#voiceStatus').textContent = `${voices.length} voci compatibili caricate.${filteredText} Premi “Test voce” per ascoltare una prova breve.`;
   } catch (error) {
     setCloudState(false, 'Cloud non disponibile');
     $('#voiceStatus').textContent = `Connessione voce: ${error.message}`;
@@ -419,6 +423,65 @@ function getCloudVoiceSettings() {
   base.style = Math.max(0, Math.min(0.55, expressive * 0.55));
   base.speed = Number($('#cloudSpeed').value) / 100;
   return base;
+}
+
+async function requestNaturalVoice(text, autoPlay = true) {
+  const voiceId = $('#cloudVoice').value;
+  if (!API_BASE) throw new Error('Manca l’URL del Worker in config.js.');
+  if (!text) throw new Error('Il testo della voce è vuoto.');
+  if (!voiceId) throw new Error('Seleziona una voce ElevenLabs.');
+
+  const response = await fetch(`${API_BASE}/tts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+    body: JSON.stringify({
+      text,
+      voice_id: voiceId,
+      model_id: $('#cloudModel').value,
+      voice_settings: getCloudVoiceSettings(),
+    }),
+  });
+
+  if (!response.ok) {
+    let detail = '';
+    try {
+      const payload = await response.json();
+      detail = typeof payload?.error === 'string' ? payload.error : JSON.stringify(payload?.error || payload);
+    } catch {
+      detail = await response.text();
+    }
+    throw new Error(detail || `Errore ${response.status}`);
+  }
+
+  generatedAudioBlob = await response.blob();
+  if (!generatedAudioBlob.size) throw new Error('ElevenLabs ha restituito un file audio vuoto.');
+  if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+  audioBlobUrl = URL.createObjectURL(generatedAudioBlob);
+  const player = $('#voicePlayer');
+  player.src = audioBlobUrl;
+  player.load();
+  $('#downloadVoice').disabled = false;
+  if (autoPlay) {
+    try { await player.play(); } catch { /* Il browser può bloccare autoplay: usa il tasto Play del player. */ }
+  }
+  return generatedAudioBlob;
+}
+
+async function testNaturalVoice() {
+  const button = $('#testVoice');
+  button.disabled = true;
+  button.textContent = 'Test in corso...';
+  $('#voiceStatus').textContent = 'Genero una prova breve della voce selezionata...';
+  try {
+    const sample = 'Questa è una prova di Voci Video Studio. La voce narrante è pronta per il tuo prossimo reel.';
+    const blob = await requestNaturalVoice(sample, true);
+    $('#voiceStatus').textContent = `Test riuscito: ${(blob.size / 1024).toFixed(0)} KB. Se non parte da solo, premi ▶ nel lettore qui sotto.`;
+  } catch (error) {
+    $('#voiceStatus').textContent = `TEST NON RIUSCITO: ${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = '▶ Test voce';
+  }
 }
 
 async function generateNaturalVoice() {
@@ -443,30 +506,8 @@ async function generateNaturalVoice() {
   $('#voiceStatus').textContent = 'Sto creando la voce naturale...';
 
   try {
-    const response = await fetch(`${API_BASE}/tts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-      body: JSON.stringify({
-        text,
-        voice_id: voiceId,
-        model_id: $('#cloudModel').value,
-        voice_settings: getCloudVoiceSettings(),
-      }),
-    });
-
-    if (!response.ok) {
-      let detail = '';
-      try { detail = (await response.json()).error || ''; } catch { detail = await response.text(); }
-      throw new Error(detail || `Errore ${response.status}`);
-    }
-
-    generatedAudioBlob = await response.blob();
-    if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
-    audioBlobUrl = URL.createObjectURL(generatedAudioBlob);
-    $('#voicePlayer').src = audioBlobUrl;
-    $('#downloadVoice').disabled = false;
-    $('#voiceStatus').textContent = `Voce creata: ${(generatedAudioBlob.size / 1024).toFixed(0)} KB. Puoi ascoltarla o scaricare l’MP3.`;
-    await $('#voicePlayer').play().catch(() => {});
+    const blob = await requestNaturalVoice(text, true);
+    $('#voiceStatus').textContent = `Voce creata: ${(blob.size / 1024).toFixed(0)} KB. Se non parte automaticamente, premi ▶ nel lettore qui sotto.`;
   } catch (error) {
     $('#voiceStatus').textContent = `Generazione non riuscita: ${error.message}`;
   } finally {
@@ -496,7 +537,7 @@ function setVoiceTab(tab) {
 function exportStoryboard() {
   const data = {
     app: 'Voci Video Studio',
-    version: 2,
+    version: '2.3',
     title: $('#title').value,
     cta: $('#cta').value,
     duration: $('#duration').value,
@@ -564,6 +605,7 @@ $('#narration').addEventListener('input', updateCharCount);
 $('#tabCloud').onclick = () => setVoiceTab('cloud');
 $('#tabBrowser').onclick = () => setVoiceTab('browser');
 $('#generateVoice').onclick = generateNaturalVoice;
+$('#testVoice').onclick = testNaturalVoice;
 $('#refreshVoices').onclick = loadCloudVoices;
 $('#downloadVoice').onclick = downloadVoice;
 $('#speak').onclick = speakBrowser;
