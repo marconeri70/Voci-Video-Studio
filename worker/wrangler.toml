@@ -1,0 +1,8 @@
+name = "voci-video-voice"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# Imposta ALLOWED_ORIGIN sul dominio esatto di GitHub Pages.
+# Esempio: https://nomeutente.github.io
+[vars]
+ALLOWED_ORIGIN = ""

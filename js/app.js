@@ -8,10 +8,22 @@ let scenes = [];
 let playing = false;
 let raf = 0;
 let startTime = 0;
+let audioBlobUrl = '';
+let generatedAudioBlob = null;
+let browserVoices = [];
+
+const API_BASE = String(window.VVS_CONFIG?.apiBaseUrl || '').replace(/\/$/, '');
 
 const stopwords = new Set(
   'il lo la i gli le un uno una di a da in con su per tra fra e ed o ma che del dello della dei degli delle al allo alla ai agli alle nel nello nella nei negli nelle sul sullo sulla sui sugli sulle come più anche non si è sono essere questo questa questi queste quello quella quelli quelle'.split(' ')
 );
+
+const voicePresets = {
+  news: { stability: 0.48, similarity_boost: 0.78, style: 0.18, speed: 0.96 },
+  warm: { stability: 0.40, similarity_boost: 0.76, style: 0.30, speed: 0.94 },
+  incisive: { stability: 0.38, similarity_boost: 0.80, style: 0.34, speed: 1.00 },
+  neutral: { stability: 0.58, similarity_boost: 0.75, style: 0.06, speed: 0.97 },
+};
 
 function sentences(text) {
   return text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s+/).filter(Boolean);
@@ -57,6 +69,32 @@ function fileToDataURL(file) {
   });
 }
 
+function naturalizeNarration(text) {
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/\s*[-–—]\s*/g, ', ')
+    .replace(/\b([A-ZÀ-ÖØ-Þ]{4,})\b/g, (word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .replace(/([.!?])(?=[A-ZÀÈÉÌÒÙ])/g, '$1 ')
+    .replace(/\.{2,}/g, '.')
+    .trim();
+}
+
+function narrationFromScenes() {
+  const body = scenes.map((scene) => scene.text.trim()).filter(Boolean).join(' ');
+  const cta = $('#cta').value.trim();
+  return naturalizeNarration([body, cta].filter(Boolean).join(' '));
+}
+
+function syncNarration() {
+  $('#narration').value = narrationFromScenes();
+  updateCharCount();
+}
+
+function updateCharCount() {
+  const n = $('#narration').value.length;
+  $('#charCount').textContent = `${n.toLocaleString('it-IT')} caratteri`;
+}
+
 async function build() {
   const article = $('#article').value.trim();
   files = [...$('#images').files];
@@ -85,6 +123,7 @@ async function build() {
   }
 
   renderStory();
+  syncNarration();
   drawIdle();
   $('#status').textContent = `Storyboard creato: ${scenes.length} scene.`;
 }
@@ -102,7 +141,7 @@ function renderStory() {
         <textarea data-i="${index}" aria-label="Testo scena ${index + 1}">${scene.text}</textarea>
         <div class="meta">${scene.seconds}s • zoom/pan leggero</div>
       </div>
-      <button class="secondary" data-del="${index}" aria-label="Elimina scena ${index + 1}">×</button>
+      <button class="secondary compactButton" data-del="${index}" aria-label="Elimina scena ${index + 1}">×</button>
     `;
     storyEl.appendChild(row);
   });
@@ -117,6 +156,7 @@ function renderStory() {
     button.onclick = (event) => {
       scenes.splice(Number(event.target.dataset.del), 1);
       renderStory();
+      syncNarration();
       drawIdle();
     };
   });
@@ -219,7 +259,7 @@ async function drawScene(scene, progress = 0, index = 0) {
 
 async function drawIdle() {
   fitCanvas();
-  const firstScene = scenes[0] || { text: $('#title').value || 'Voci Video Studio', img: null };
+  const firstScene = scenes[0] || { text: $('#title').value || 'Voci Video Studio V2', img: null };
   await drawScene(firstScene, 0, 0);
 }
 
@@ -267,51 +307,230 @@ async function play() {
   raf = requestAnimationFrame(frame);
 }
 
-function speak() {
-  if (!('speechSynthesis' in window)) {
-    alert('Voce non supportata dal browser.');
+function rankBrowserVoice(voice) {
+  let score = 0;
+  const name = voice.name.toLowerCase();
+  const lang = String(voice.lang || '').toLowerCase();
+  if (lang === 'it-it') score += 100;
+  else if (lang.startsWith('it')) score += 80;
+  if (/natural|premium|enhanced|neural|online/.test(name)) score += 30;
+  if (/microsoft|google|apple/.test(name)) score += 10;
+  if (voice.localService) score += 3;
+  return score;
+}
+
+function loadBrowserVoices() {
+  if (!('speechSynthesis' in window)) return;
+  browserVoices = speechSynthesis.getVoices()
+    .filter((voice) => String(voice.lang || '').toLowerCase().startsWith('it'))
+    .sort((a, b) => rankBrowserVoice(b) - rankBrowserVoice(a));
+
+  const select = $('#browserVoice');
+  select.innerHTML = '';
+  if (!browserVoices.length) {
+    select.innerHTML = '<option value="">Nessuna voce italiana trovata</option>';
     return;
   }
-  if (!scenes.length) {
-    $('#status').textContent = 'Crea prima lo storyboard.';
+
+  browserVoices.forEach((voice, index) => {
+    const option = document.createElement('option');
+    option.value = String(index);
+    option.textContent = `${voice.name} — ${voice.lang}${index === 0 ? ' ★ consigliata' : ''}`;
+    select.appendChild(option);
+  });
+}
+
+function speakBrowser() {
+  if (!('speechSynthesis' in window)) {
+    $('#voiceStatus').textContent = 'Voce non supportata dal browser.';
+    return;
+  }
+  const text = naturalizeNarration($('#narration').value.trim());
+  if (!text) {
+    $('#voiceStatus').textContent = 'Inserisci o genera prima il copione voce.';
     return;
   }
 
   speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(scenes.map((scene) => scene.text).join('. '));
-  utterance.lang = 'it-IT';
-  utterance.rate = 0.95;
+  const utterance = new SpeechSynthesisUtterance(text);
+  const selected = browserVoices[Number($('#browserVoice').value || 0)];
+  if (selected) utterance.voice = selected;
+  utterance.lang = selected?.lang || 'it-IT';
+  utterance.rate = Number($('#browserRate').value) / 100;
+  utterance.pitch = 1;
+  utterance.volume = 1;
   speechSynthesis.speak(utterance);
+}
+
+function stopBrowserSpeech() {
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+}
+
+function setCloudState(ok, text) {
+  const badge = $('#cloudState');
+  badge.textContent = text;
+  badge.classList.toggle('on', ok);
+  badge.classList.toggle('off', !ok);
+}
+
+async function loadCloudVoices() {
+  const select = $('#cloudVoice');
+  if (!API_BASE) {
+    setCloudState(false, 'Cloud non configurato');
+    select.innerHTML = '<option value="">Configura config.js</option>';
+    return;
+  }
+
+  setCloudState(false, 'Connessione...');
+  $('#voiceStatus').textContent = 'Caricamento voci disponibili...';
+  try {
+    const response = await fetch(`${API_BASE}/voices`, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(await response.text() || `Errore ${response.status}`);
+    const data = await response.json();
+    const voices = Array.isArray(data.voices) ? data.voices : [];
+    select.innerHTML = '';
+
+    if (!voices.length) {
+      select.innerHTML = '<option value="">Nessuna voce disponibile</option>';
+      throw new Error('Nessuna voce disponibile nell’account ElevenLabs.');
+    }
+
+    voices.forEach((voice) => {
+      const option = document.createElement('option');
+      option.value = voice.voice_id;
+      const accent = voice.labels?.accent ? ` • ${voice.labels.accent}` : '';
+      const useCase = voice.labels?.use_case ? ` • ${voice.labels.use_case}` : '';
+      option.textContent = `${voice.name || 'Voce'}${accent}${useCase}`;
+      select.appendChild(option);
+    });
+
+    setCloudState(true, 'Cloud connesso');
+    $('#voiceStatus').textContent = `${voices.length} voci caricate. Prova il preset “Giornalistica naturale”.`;
+  } catch (error) {
+    setCloudState(false, 'Cloud non disponibile');
+    $('#voiceStatus').textContent = `Connessione voce: ${error.message}`;
+  }
+}
+
+function getCloudVoiceSettings() {
+  const base = { ...voicePresets[$('#voicePreset').value] };
+  const expressive = Number($('#expressiveness').value) / 100;
+  base.stability = Math.max(0.25, Math.min(0.75, 0.70 - expressive * 0.48));
+  base.style = Math.max(0, Math.min(0.55, expressive * 0.55));
+  base.speed = Number($('#cloudSpeed').value) / 100;
+  return base;
+}
+
+async function generateNaturalVoice() {
+  const text = naturalizeNarration($('#narration').value.trim());
+  const voiceId = $('#cloudVoice').value;
+  if (!API_BASE) {
+    $('#voiceStatus').textContent = 'Manca l’URL del Worker in config.js. Segui SETUP_VOCE_NATURALE.md.';
+    return;
+  }
+  if (!text) {
+    $('#voiceStatus').textContent = 'Inserisci o genera prima il copione voce.';
+    return;
+  }
+  if (!voiceId) {
+    $('#voiceStatus').textContent = 'Seleziona una voce ElevenLabs.';
+    return;
+  }
+
+  const button = $('#generateVoice');
+  button.disabled = true;
+  button.textContent = 'Generazione...';
+  $('#voiceStatus').textContent = 'Sto creando la voce naturale...';
+
+  try {
+    const response = await fetch(`${API_BASE}/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+      body: JSON.stringify({
+        text,
+        voice_id: voiceId,
+        model_id: $('#cloudModel').value,
+        voice_settings: getCloudVoiceSettings(),
+      }),
+    });
+
+    if (!response.ok) {
+      let detail = '';
+      try { detail = (await response.json()).error || ''; } catch { detail = await response.text(); }
+      throw new Error(detail || `Errore ${response.status}`);
+    }
+
+    generatedAudioBlob = await response.blob();
+    if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+    audioBlobUrl = URL.createObjectURL(generatedAudioBlob);
+    $('#voicePlayer').src = audioBlobUrl;
+    $('#downloadVoice').disabled = false;
+    $('#voiceStatus').textContent = `Voce creata: ${(generatedAudioBlob.size / 1024).toFixed(0)} KB. Puoi ascoltarla o scaricare l’MP3.`;
+    await $('#voicePlayer').play().catch(() => {});
+  } catch (error) {
+    $('#voiceStatus').textContent = `Generazione non riuscita: ${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = '✨ Genera voce naturale';
+  }
+}
+
+function downloadVoice() {
+  if (!generatedAudioBlob || !audioBlobUrl) return;
+  const safeTitle = ($('#title').value || 'voci-video-narrazione')
+    .toLowerCase().replace(/[^a-z0-9àèéìòù]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+  const link = document.createElement('a');
+  link.href = audioBlobUrl;
+  link.download = `${safeTitle || 'narrazione'}.mp3`;
+  link.click();
+}
+
+function setVoiceTab(tab) {
+  const cloud = tab === 'cloud';
+  $('#tabCloud').classList.toggle('active', cloud);
+  $('#tabBrowser').classList.toggle('active', !cloud);
+  $('#cloudPanel').classList.toggle('hidden', !cloud);
+  $('#browserPanel').classList.toggle('hidden', cloud);
 }
 
 function exportStoryboard() {
   const data = {
     app: 'Voci Video Studio',
-    version: 1,
+    version: 2,
     title: $('#title').value,
     cta: $('#cta').value,
     duration: $('#duration').value,
     format: $('#format').value,
     style: $('#style').value,
+    narration: $('#narration').value,
+    voice: {
+      provider: 'elevenlabs-or-browser',
+      cloud_voice_id: $('#cloudVoice').value,
+      model: $('#cloudModel').value,
+      preset: $('#voicePreset').value,
+      settings: getCloudVoiceSettings(),
+    },
     scenes: scenes.map(({ text, seconds }) => ({ text, seconds })),
   };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = 'voci-video-storyboard.json';
+  link.download = 'voci-video-storyboard-v2.json';
   link.click();
   URL.revokeObjectURL(link.href);
 }
 
 function clearAll() {
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  stopBrowserSpeech();
   $('#article').value = '';
   $('#title').value = '';
   $('#images').value = '';
+  $('#narration').value = '';
   scenes = [];
   files = [];
   renderStory();
+  updateCharCount();
   drawIdle();
   $('#status').textContent = 'Azzerato.';
 }
@@ -322,16 +541,46 @@ function loadDemo() {
   build();
 }
 
+function bindRangeOutputs() {
+  $('#expressiveness').addEventListener('input', () => {
+    $('#expressivenessValue').textContent = $('#expressiveness').value;
+  });
+  $('#cloudSpeed').addEventListener('input', () => {
+    $('#cloudSpeedValue').textContent = `${(Number($('#cloudSpeed').value) / 100).toFixed(2).replace('.', ',')}×`;
+  });
+  $('#browserRate').addEventListener('input', () => {
+    $('#browserRateValue').textContent = `${(Number($('#browserRate').value) / 100).toFixed(2).replace('.', ',')}×`;
+  });
+}
+
 $('#build').onclick = build;
 $('#play').onclick = play;
-$('#speak').onclick = speak;
 $('#export').onclick = exportStoryboard;
 $('#format').onchange = drawIdle;
 $('#clear').onclick = clearAll;
 $('#demo').onclick = loadDemo;
+$('#syncNarration').onclick = syncNarration;
+$('#narration').addEventListener('input', updateCharCount);
+$('#tabCloud').onclick = () => setVoiceTab('cloud');
+$('#tabBrowser').onclick = () => setVoiceTab('browser');
+$('#generateVoice').onclick = generateNaturalVoice;
+$('#refreshVoices').onclick = loadCloudVoices;
+$('#downloadVoice').onclick = downloadVoice;
+$('#speak').onclick = speakBrowser;
+$('#stopSpeak').onclick = stopBrowserSpeech;
 
+bindRangeOutputs();
 window.addEventListener('resize', drawIdle);
-window.addEventListener('load', drawIdle);
+window.addEventListener('load', () => {
+  drawIdle();
+  updateCharCount();
+  loadBrowserVoices();
+  loadCloudVoices();
+});
+
+if ('speechSynthesis' in window) {
+  speechSynthesis.onvoiceschanged = loadBrowserVoices;
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

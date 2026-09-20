@@ -1,39 +1,61 @@
-# Voci Video Studio
+# Voci Video Studio V2
 
-Webapp statica pronta per GitHub Pages.
+Webapp pronta per GitHub Pages, con nuova sezione **voce narrante naturale**.
 
-## Funzioni incluse
+## Novità V2
 
-- Incolla un articolo o testo
-- Carica più foto reali
-- Scegli durata 30 / 45 / 60 secondi
-- Scegli formato 9:16, 1:1 o 16:9
-- Generazione locale di uno storyboard sintetico
-- Modifica manuale delle scene
-- Anteprima animata con zoom/pan
-- Lettura del copione con la voce disponibile nel browser
-- Esportazione dello storyboard in JSON
-- Supporto installazione come PWA/offline di base
+- Copione narratore separato e modificabile
+- Normalizzazione del testo per una pronuncia più naturale
+- Modalità **AI realistica ElevenLabs** tramite backend sicuro
+- Preset: giornalistica, calda, incisiva, neutra
+- Controllo espressività e velocità
+- Player audio integrato
+- Download del file MP3 generato
+- Fallback con le voci italiane del dispositivo
+- Selezione automatica preferenziale di voci Natural/Premium/Enhanced
+- Worker Cloudflare già incluso: la chiave API non finisce mai su GitHub Pages
 
-## Pubblicazione su GitHub Pages
+## Funzioni della V1 mantenute
 
-1. Crea un nuovo repository GitHub, ad esempio `voci-video-studio`.
-2. Carica **tutti i file e le cartelle contenuti in questo ZIP** nella root del repository.
-3. Apri `Settings` → `Pages`.
-4. In `Build and deployment`, scegli `Deploy from a branch`.
-5. Seleziona branch `main` e cartella `/ (root)`.
-6. Salva.
+- Articolo/testo → storyboard
+- Foto reali multiple
+- Durata 30 / 45 / 60 secondi
+- Formati 9:16, 1:1 e 16:9
+- Modifica scene
+- Anteprima con zoom/pan
+- Esportazione storyboard JSON
+- PWA/offline per il frontend
 
-Dopo la pubblicazione GitHub mostrerà il link della webapp.
+## Pubblicazione frontend su GitHub Pages
+
+1. Carica tutti i file e le cartelle di questo progetto nella root del repository.
+2. GitHub → `Settings` → `Pages`.
+3. `Deploy from a branch` → `main` → `/ (root)`.
+4. Salva.
+
+La modalità voce dispositivo funziona senza backend.
+
+## Attivazione voce AI naturale
+
+Leggi **SETUP_VOCE_NATURALE.md**.
+
+In sintesi:
+
+1. ottieni una chiave ElevenLabs;
+2. pubblichi la cartella `worker` su Cloudflare Workers;
+3. salvi la chiave come secret `ELEVENLABS_API_KEY`;
+4. metti l'URL del Worker in `config.js`.
 
 ## Struttura
 
 ```text
-voci-video-studio/
+voci-video-studio-v2/
 ├── index.html
+├── config.js
+├── config.example.js
+├── SETUP_VOCE_NATURALE.md
 ├── manifest.webmanifest
 ├── service-worker.js
-├── config.example.js
 ├── .nojekyll
 ├── .gitignore
 ├── README.md
@@ -41,22 +63,20 @@ voci-video-studio/
 │   └── style.css
 ├── js/
 │   └── app.js
-└── assets/
-    └── logo.svg
+├── assets/
+│   └── logo.svg
+└── worker/
+    ├── package.json
+    ├── wrangler.toml
+    ├── README.md
+    └── src/
+        └── index.js
 ```
 
 ## Sicurezza
 
-Non inserire chiavi API di Google, Gemini/Veo, OpenAI, ElevenLabs o altri servizi direttamente nei file JavaScript del repository pubblico.
+Non inserire mai `ELEVENLABS_API_KEY` in `config.js`, `app.js` o altri file pubblici. Il frontend deve conoscere solo l'URL pubblico del Worker.
 
-Le integrazioni AI future dovranno usare un backend o una funzione serverless con variabili d'ambiente.
+## Prossima fase
 
-## Prossimi moduli previsti
-
-- Generazione MP4 finale
-- Voce narrante esportata nel video
-- Musica e volume automatico
-- Sottotitoli impressi nel video
-- Intro/outro Segnala Facile
-- Animazione AI delle foto tramite API
-- Salvataggio progetti
+La base V2 è pronta per collegare l'MP3 della voce al rendering finale del Reel, aggiungendo musica, sottotitoli sincronizzati e generazione MP4.

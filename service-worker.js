@@ -1,7 +1,8 @@
-const CACHE = 'voci-video-studio-v1';
+const CACHE = 'voci-video-studio-v2';
 const ASSETS = [
   './',
   './index.html',
+  './config.js',
   './css/style.css',
   './js/app.js',
   './manifest.webmanifest',
@@ -22,6 +23,9 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
       const copy = response.clone();
