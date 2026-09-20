@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f1115" />
-  <meta name="description" content="Voci Video Studio V2.3: articolo + foto reali → storyboard, Reel e voce narrante naturale." />
-  <title>Voci Video Studio V2.3</title>
+  <meta name="description" content="Voci Video Studio V3: articolo + foto reali → storyboard, voce naturale e Reel finale." />
+  <title>Voci Video Studio V3</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./css/style.css" />
@@ -15,8 +15,8 @@
   <div class="brand">
     <img src="./assets/logo.svg" alt="Voci Video Studio" class="brandLogo" />
     <div>
-      <div class="brandLine"><h1>Voci Video Studio</h1><span class="versionBadge">V2.3</span></div>
-      <p>Articolo + foto reali → Reel, storyboard e voce narrante naturale.</p>
+      <div class="brandLine"><h1>Voci Video Studio</h1><span class="versionBadge">V3</span></div>
+      <p>Articolo + foto reali → storyboard, voce naturale e Reel finale.</p>
     </div>
   </div>
 </header>
@@ -24,7 +24,13 @@
 <main>
   <section>
     <div class="card">
-      <h2>1. Contenuto</h2>
+      <div class="sectionHeading">
+        <div><h2>1. Contenuto</h2><div class="hint">Prepara il Reel partendo dall'articolo e dalle foto reali.</div></div>
+        <div class="projectTools">
+          <button class="secondary compactButton" id="saveProject" type="button">💾 Salva progetto</button>
+          <label class="secondary compactButton fileButton">📂 Apri progetto<input id="loadProject" type="file" accept="application/json,.json" /></label>
+        </div>
+      </div>
       <div class="field">
         <label for="article">Articolo o testo</label>
         <textarea id="article" placeholder="Incolla qui l'articolo..."></textarea>
@@ -36,41 +42,14 @@
       </div>
 
       <div class="row3">
-        <div class="field">
-          <label for="duration">Durata</label>
-          <select id="duration">
-            <option value="30">30 s</option>
-            <option value="45" selected>45 s</option>
-            <option value="60">60 s</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="style">Stile</label>
-          <select id="style">
-            <option value="news">Giornalistico</option>
-            <option value="civic">Civico / incisivo</option>
-            <option value="neutral">Neutro</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="format">Formato</label>
-          <select id="format">
-            <option value="9:16">9:16 Reel</option>
-            <option value="1:1">1:1 Quadrato</option>
-            <option value="16:9">16:9 Orizzontale</option>
-          </select>
-        </div>
+        <div class="field"><label for="duration">Durata</label><select id="duration"><option value="30">30 s</option><option value="45" selected>45 s</option><option value="60">60 s</option></select></div>
+        <div class="field"><label for="style">Stile</label><select id="style"><option value="news">Giornalistico</option><option value="civic">Civico / incisivo</option><option value="neutral">Neutro</option></select></div>
+        <div class="field"><label for="format">Formato</label><select id="format"><option value="9:16">9:16 Reel</option><option value="1:1">1:1 Quadrato</option><option value="16:9">16:9 Orizzontale</option></select></div>
       </div>
 
       <div class="row">
-        <div class="field">
-          <label for="title">Titolo breve</label>
-          <input id="title" placeholder="Generato automaticamente" />
-        </div>
-        <div class="field">
-          <label for="cta">CTA finale</label>
-          <input id="cta" value="Segnala ciò che accade nella tua zona — Segnala Facile" />
-        </div>
+        <div class="field"><label for="title">Titolo breve</label><input id="title" placeholder="Generato automaticamente" /></div>
+        <div class="field"><label for="cta">CTA finale</label><input id="cta" value="Segnala ciò che accade nella tua zona — Segnala Facile" /></div>
       </div>
 
       <div class="actions">
@@ -82,21 +61,13 @@
     </div>
 
     <div class="card sectionGap">
-      <div class="sectionHeading">
-        <div>
-          <h2>2. Storyboard</h2>
-          <div class="hint">Le foto restano originali: ritaglio, zoom e panoramica, senza ricostruzioni AI.</div>
-        </div>
-      </div>
+      <div class="sectionHeading"><div><h2>2. Storyboard</h2><div class="hint">Le foto restano originali: ritaglio, zoom e panoramica, senza ricostruzioni AI.</div></div></div>
       <div id="story" class="story"></div>
     </div>
 
     <div class="card sectionGap narratorCard">
       <div class="sectionHeading">
-        <div>
-          <h2>3. Voce narrante naturale</h2>
-          <div class="hint">Modalità AI realistica tramite backend sicuro oppure voce naturale disponibile sul dispositivo.</div>
-        </div>
+        <div><h2>3. Voce narrante naturale</h2><div class="hint">ElevenLabs tramite backend sicuro, con fallback alla voce del dispositivo.</div></div>
         <span id="cloudState" class="connectionBadge off">Cloud non configurato</span>
       </div>
 
@@ -113,26 +84,9 @@
 
       <div id="cloudPanel" class="voicePanel">
         <div class="row3">
-          <div class="field">
-            <label for="cloudVoice">Voce</label>
-            <select id="cloudVoice"><option value="">Configura il backend per caricare le voci</option></select>
-          </div>
-          <div class="field">
-            <label for="voicePreset">Interpretazione</label>
-            <select id="voicePreset">
-              <option value="news" selected>Giornalistica naturale</option>
-              <option value="warm">Calda e coinvolgente</option>
-              <option value="incisive">Incisiva</option>
-              <option value="neutral">Neutra</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="cloudModel">Qualità</label>
-            <select id="cloudModel">
-              <option value="eleven_multilingual_v2" selected>Multilingual V2 — qualità</option>
-              <option value="eleven_flash_v2_5">Flash V2.5 — più rapido</option>
-            </select>
-          </div>
+          <div class="field"><label for="cloudVoice">Voce</label><select id="cloudVoice"><option value="">Configura il backend per caricare le voci</option></select></div>
+          <div class="field"><label for="voicePreset">Interpretazione</label><select id="voicePreset"><option value="news" selected>Giornalistica naturale</option><option value="warm">Calda e coinvolgente</option><option value="incisive">Incisiva</option><option value="neutral">Neutra</option></select></div>
+          <div class="field"><label for="cloudModel">Qualità</label><select id="cloudModel"><option value="eleven_multilingual_v2" selected>Multilingual V2 — qualità</option><option value="eleven_flash_v2_5">Flash V2.5 — più rapido</option></select></div>
         </div>
 
         <div class="voiceSliders">
@@ -152,46 +106,55 @@
 
       <div id="browserPanel" class="voicePanel hidden">
         <div class="row">
-          <div class="field">
-            <label for="browserVoice">Voce italiana disponibile</label>
-            <select id="browserVoice"><option>Ricerca voci...</option></select>
-          </div>
-          <div class="field">
-            <label for="browserRate">Velocità</label>
-            <input id="browserRate" type="range" min="80" max="110" value="94" />
-            <div class="rangeValue" id="browserRateValue">0,94×</div>
-          </div>
+          <div class="field"><label for="browserVoice">Voce italiana disponibile</label><select id="browserVoice"><option>Ricerca voci...</option></select></div>
+          <div class="field"><label for="browserRate">Velocità</label><input id="browserRate" type="range" min="80" max="110" value="94" /><div class="rangeValue" id="browserRateValue">0,94×</div></div>
         </div>
-        <div class="actions">
-          <button class="primary" id="speak">▶ Ascolta voce dispositivo</button>
-          <button class="secondary" id="stopSpeak">■ Ferma</button>
-        </div>
-        <div class="hint topSpace">La qualità dipende dalle voci installate nel telefono/PC. Le voci “Natural”, “Premium” o “Enhanced” vengono preferite automaticamente.</div>
+        <div class="actions"><button class="primary" id="speak">▶ Ascolta voce dispositivo</button><button class="secondary" id="stopSpeak">■ Ferma</button></div>
+        <div class="hint topSpace">La voce dispositivo è utile per le prove. Per inserirla nel video finale usa la voce AI e genera l'MP3.</div>
       </div>
+    </div>
+
+    <div class="card sectionGap renderCard">
+      <div class="sectionHeading">
+        <div><h2>4. Reel finale</h2><div class="hint">Monta foto, voce, sottotitoli, intro/outro e musica direttamente nel browser.</div></div>
+        <span class="connectionBadge on">Rendering locale</span>
+      </div>
+
+      <div class="row3">
+        <div class="field"><label for="renderQuality">Qualità</label><select id="renderQuality"><option value="720" selected>720p — consigliata</option><option value="1080">1080p — più pesante</option></select></div>
+        <div class="field"><label for="fps">Fotogrammi</label><select id="fps"><option value="25" selected>25 fps</option><option value="30">30 fps</option></select></div>
+        <div class="field"><label for="renderMode">Durata</label><select id="renderMode"><option value="adapt" selected>Adatta alla voce se serve</option><option value="fixed">Mantieni durata scelta</option></select></div>
+      </div>
+
+      <div class="renderOptions">
+        <label class="checkLine"><input id="useIntro" type="checkbox" checked /> Intro con titolo</label>
+        <label class="checkLine"><input id="useOutro" type="checkbox" checked /> Outro con Segnala Facile</label>
+        <label class="checkLine"><input id="useSubtitles" type="checkbox" checked /> Sottotitoli impressi nel video</label>
+      </div>
+
+      <div class="field topSpace"><label for="musicFile">Musica di sottofondo (facoltativa, MP3/WAV)</label><input id="musicFile" type="file" accept="audio/*" /></div>
+      <div class="voiceSliders">
+        <label>Volume voce <input id="voiceVolume" type="range" min="0" max="100" value="100" /><span id="voiceVolumeValue">100%</span></label>
+        <label>Volume musica <input id="musicVolume" type="range" min="0" max="40" value="12" /><span id="musicVolumeValue">12%</span></label>
+      </div>
+
+      <div class="actions">
+        <button class="primary bigAction" id="renderVideo">🎬 CREA REEL COMPLETO</button>
+        <button class="secondary" id="downloadVideo" disabled>⬇ Scarica video</button>
+      </div>
+      <div class="progressShell"><div id="renderProgress" class="progressBar"></div></div>
+      <div class="status" id="renderStatus" aria-live="polite">Genera prima storyboard e voce naturale, poi premi “Crea Reel completo”.</div>
+      <video id="finalVideo" class="finalVideo hidden" controls playsinline></video>
+      <div class="hint topSpace">Il rendering avviene sul tuo dispositivo. Se il browser può registrare MP4 lo crea direttamente; altrimenti genera WebM e prova la conversione automatica in MP4 con FFmpeg WebAssembly.</div>
     </div>
   </section>
 
   <aside class="card previewCard">
-    <h2>4. Anteprima Reel</h2>
-    <div class="phoneWrap">
-      <div class="phone">
-        <canvas id="canvas" width="1080" height="1920"></canvas>
-      </div>
-    </div>
-
-    <div class="overlayControls">
-      <button class="primary" id="play">▶ Anteprima</button>
-      <button class="secondary" id="export">⬇ Esporta storyboard</button>
-    </div>
-
-    <div class="miniInfo">
-      <strong>V2.3 — Narratore naturale</strong>
-      <span>La voce AI viene restituita come MP3. Con “Test voce” puoi ascoltare prima una frase breve e verificare subito la voce scelta.</span>
-    </div>
-
-    <div class="footerNote">
-      GitHub Pages ospita solo il frontend. La chiave ElevenLabs resta nel Worker serverless e non viene mai inviata al browser.
-    </div>
+    <h2>5. Anteprima Reel</h2>
+    <div class="phoneWrap"><div class="phone"><canvas id="canvas" width="1080" height="1920"></canvas></div></div>
+    <div class="overlayControls"><button class="primary" id="play">▶ Anteprima</button><button class="secondary" id="export">⬇ Esporta storyboard</button></div>
+    <div class="miniInfo"><strong>V3 — Reel completo</strong><span>Voce ElevenLabs, sottotitoli, musica facoltativa, intro/outro e rendering finale direttamente dal browser.</span></div>
+    <div class="footerNote">La chiave ElevenLabs resta nel Worker Cloudflare. Le foto e il rendering del video restano sul dispositivo.</div>
   </aside>
 </main>
 

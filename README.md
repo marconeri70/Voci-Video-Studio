@@ -1,94 +1,35 @@
-# Voci Video Studio V2.3
+# Voci Video Studio V3
 
-Webapp pronta per GitHub Pages, con nuova sezione **voce narrante naturale**.
+Webapp statica per GitHub Pages: articolo + foto reali → storyboard → voce naturale ElevenLabs → Reel finale.
 
-## Novità V2
+## Novità V3
+- Rendering locale del Reel nel browser.
+- Voce ElevenLabs sincronizzata nel video.
+- Sottotitoli impressi automaticamente.
+- Intro con titolo e outro con CTA Segnala Facile.
+- Musica di sottofondo opzionale caricata dall'utente.
+- Controlli volume voce/musica.
+- 720p consigliata e 1080p opzionale.
+- 25/30 fps.
+- Salvataggio/apertura progetto `.vvs.json`.
+- Download finale MP4 quando supportato; fallback WebM con tentativo di conversione MP4 tramite FFmpeg WebAssembly.
 
-- Copione narratore separato e modificabile
-- Normalizzazione del testo per una pronuncia più naturale
-- Modalità **AI realistica ElevenLabs** tramite backend sicuro
-- Preset: giornalistica, calda, incisiva, neutra
-- Controllo espressività e velocità
-- Player audio integrato
-- Download del file MP3 generato
-- Fallback con le voci italiane del dispositivo
-- Selezione automatica preferenziale di voci Natural/Premium/Enhanced
-- Worker Cloudflare già incluso: la chiave API non finisce mai su GitHub Pages
+## Pubblicazione GitHub Pages
+Carica tutti i file della cartella nella root del repository e abilita Settings → Pages → Deploy from a branch → main → /root.
 
-## Funzioni della V1 mantenute
-
-- Articolo/testo → storyboard
-- Foto reali multiple
-- Durata 30 / 45 / 60 secondi
-- Formati 9:16, 1:1 e 16:9
-- Modifica scene
-- Anteprima con zoom/pan
-- Esportazione storyboard JSON
-- PWA/offline per il frontend
-
-## Pubblicazione frontend su GitHub Pages
-
-1. Carica tutti i file e le cartelle di questo progetto nella root del repository.
-2. GitHub → `Settings` → `Pages`.
-3. `Deploy from a branch` → `main` → `/ (root)`.
-4. Salva.
-
-La modalità voce dispositivo funziona senza backend.
-
-## Attivazione voce AI naturale
-
-Leggi **SETUP_VOCE_NATURALE.md**.
-
-In sintesi:
-
-1. ottieni una chiave ElevenLabs;
-2. pubblichi la cartella `worker` su Cloudflare Workers;
-3. salvi la chiave come secret `ELEVENLABS_API_KEY`;
-4. metti l'URL del Worker in `config.js`.
-
-## Struttura
-
-```text
-voci-video-studio-v2/
-├── index.html
-├── config.js
-├── config.example.js
-├── SETUP_VOCE_NATURALE.md
-├── manifest.webmanifest
-├── service-worker.js
-├── .nojekyll
-├── .gitignore
-├── README.md
-├── css/
-│   └── style.css
-├── js/
-│   └── app.js
-├── assets/
-│   └── logo.svg
-└── worker/
-    ├── package.json
-    ├── wrangler.toml
-    ├── README.md
-    └── src/
-        └── index.js
-```
-
-## Sicurezza
-
-Non inserire mai `ELEVENLABS_API_KEY` in `config.js`, `app.js` o altri file pubblici. Il frontend deve conoscere solo l'URL pubblico del Worker.
-
-## Prossima fase
-
-La base V2 è pronta per collegare l'MP3 della voce al rendering finale del Reel, aggiungendo musica, sottotitoli sincronizzati e generazione MP4.
-
-
-## Configurazione Worker collegata
-
-Questa build è già configurata per usare:
+## Backend voce
+`config.js` contiene già l'URL del Worker:
 `https://voci-video-studio.vocidicassino.workers.dev`
 
-Non inserire mai la chiave ElevenLabs nei file del frontend.
+La chiave ElevenLabs deve restare esclusivamente nel Secret `ELEVENLABS_API_KEY` del Worker Cloudflare.
 
+## Come creare un Reel
+1. Incolla articolo e carica foto reali.
+2. Crea storyboard.
+3. Genera la voce naturale.
+4. Facoltativo: carica un brano musicale di cui hai diritto all'uso.
+5. Premi `CREA REEL COMPLETO`.
+6. Al termine scarica il video.
 
-## Se compare ancora la vecchia interfaccia
-Dopo aver caricato tutti i file, apri una volta `reset.html` dal sito GitHub Pages. La pagina elimina il vecchio service worker/cache e riapre automaticamente la V2.3.
+## Nota sul rendering
+Il rendering avviene sul dispositivo e richiede alcuni secondi/minuti a seconda di durata, risoluzione e potenza del PC. La conversione MP4 via FFmpeg viene caricata da CDN solo quando necessaria; se non è disponibile, il video WebM resta comunque scaricabile.
