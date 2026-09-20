@@ -1,8 +1,8 @@
-# Voci Video Studio V3.1
+# Voci Video Studio V3.2
 
 Webapp statica per GitHub Pages: articolo + foto reali → storyboard → voce naturale ElevenLabs → Reel finale.
 
-## Novità V3.1
+## Novità V3.2
 - Rendering locale del Reel nel browser.
 - Voce ElevenLabs sincronizzata nel video.
 - Sottotitoli impressi automaticamente.
@@ -36,4 +36,8 @@ Il rendering avviene sul dispositivo e richiede alcuni secondi/minuti a seconda 
 
 
 ### Libreria musicale integrata
-La V3.1 include quattro basi originali: Cronaca sobria, Editoriale moderna, Città soft e Istituzionale soft. È sempre possibile scegliere Nessuna musica oppure caricare un MP3/WAV personale.
+La V3.2 include quattro basi originali: Cronaca sobria, Editoriale moderna, Città soft e Istituzionale soft. È sempre possibile scegliere Nessuna musica oppure caricare un MP3/WAV personale.
+
+
+## V3.2 — Libreria audio utente
+Aggiunti 11 file audio forniti dall’utente, organizzati per News/Cronaca, Jingle/Apertura e Documentario/Riflessivo.

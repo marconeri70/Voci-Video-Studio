@@ -20,6 +20,17 @@ const builtInMusic = {
   editoriale: './assets/music/editoriale-moderna.mp3',
   citta: './assets/music/citta-soft.mp3',
   istituzionale: './assets/music/istituzionale-soft.mp3',
+  alex_news: './assets/music/alex-news-background.mp3',
+  audiodollar_news: './assets/music/audiodollar-news-background.mp3',
+  elevenlabs_jingle: './assets/music/elevenlabs-headline-jingle.mp3',
+  elislane_news: './assets/music/elislane-news.mp3',
+  better_today: './assets/music/better-today-documentary.mp3',
+  mrwashington_jingle: './assets/music/mrwashington-news-jingle.mp3',
+  thinking_time: './assets/music/thinking-time.mp3',
+  news_sports: './assets/music/news-and-sports.mp3',
+  sigma_news: './assets/music/sigmamusicart-news-background.mp3',
+  mountain_news: './assets/music/the-mountain-news.mp3',
+  breaking_news: './assets/music/breaking-news.mp3',
 };
 
 const API_BASE = String(window.VVS_CONFIG?.apiBaseUrl || '').replace(/\/$/, '');
@@ -147,7 +158,7 @@ async function drawScene(scene, progress = 0, index = 0) {
   ctx.textBaseline = 'top'; lines.forEach((line) => { ctx.font = `700 ${fontSize}px Arial`; ctx.fillStyle = 'rgba(0,0,0,.48)'; ctx.fillText(line, padding + 3, y + 3); ctx.fillStyle = '#fff'; ctx.fillText(line, padding, y); y += fontSize * 1.18; });
   ctx.font = `700 ${Math.max(24, canvas.width * .025)}px Arial`; ctx.fillStyle = '#fff'; ctx.fillText('VOCI DI CASSINO', padding, canvas.height - padding * 1.25); ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillText(`${index + 1}/${Math.max(1, scenes.length)}`, canvas.width - padding, canvas.height - padding * 1.25); ctx.textAlign = 'left';
 }
-async function drawIdle() { fitCanvas(); await drawScene(scenes[0] || { text: $('#title').value || 'Voci Video Studio V3.1', img: null }, 0, 0); }
+async function drawIdle() { fitCanvas(); await drawScene(scenes[0] || { text: $('#title').value || 'Voci Video Studio V3.2', img: null }, 0, 0); }
 
 async function play() {
   if (!scenes.length) { $('#status').textContent = 'Crea prima lo storyboard.'; return; }
@@ -191,7 +202,7 @@ function downloadVoice() { if (!generatedAudioBlob || !audioBlobUrl) return; con
 function setVoiceTab(tab) { const cloud = tab === 'cloud'; $('#tabCloud').classList.toggle('active', cloud); $('#tabBrowser').classList.toggle('active', !cloud); $('#cloudPanel').classList.toggle('hidden', !cloud); $('#browserPanel').classList.toggle('hidden', cloud); }
 
 function safeFileName(s) { return String(s || 'voci-video').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'voci-video'; }
-function getProjectData() { return { app: 'Voci Video Studio', version: '3.1', article: $('#article').value, title: $('#title').value, cta: $('#cta').value, duration: $('#duration').value, format: $('#format').value, style: $('#style').value, narration: $('#narration').value, render: { quality: $('#renderQuality').value, fps: $('#fps').value, mode: $('#renderMode').value, intro: $('#useIntro').checked, outro: $('#useOutro').checked, subtitles: $('#useSubtitles').checked, voiceVolume: $('#voiceVolume').value, musicVolume: $('#musicVolume').value, musicPreset: $('#musicPreset').value }, voice: { cloud_voice_id: $('#cloudVoice').value, model: $('#cloudModel').value, preset: $('#voicePreset').value, settings: getCloudVoiceSettings() }, scenes: scenes.map(({ text, seconds, img }) => ({ text, seconds, img })) }; }
+function getProjectData() { return { app: 'Voci Video Studio', version: '3.2', article: $('#article').value, title: $('#title').value, cta: $('#cta').value, duration: $('#duration').value, format: $('#format').value, style: $('#style').value, narration: $('#narration').value, render: { quality: $('#renderQuality').value, fps: $('#fps').value, mode: $('#renderMode').value, intro: $('#useIntro').checked, outro: $('#useOutro').checked, subtitles: $('#useSubtitles').checked, voiceVolume: $('#voiceVolume').value, musicVolume: $('#musicVolume').value, musicPreset: $('#musicPreset').value }, voice: { cloud_voice_id: $('#cloudVoice').value, model: $('#cloudModel').value, preset: $('#voicePreset').value, settings: getCloudVoiceSettings() }, scenes: scenes.map(({ text, seconds, img }) => ({ text, seconds, img })) }; }
 function saveProjectFile() { const blob = new Blob([JSON.stringify(getProjectData(), null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${safeFileName($('#title').value || 'voci-video-progetto')}.vvs.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
 async function loadProjectFile(file) { try { const data = JSON.parse(await file.text()); $('#article').value = data.article || ''; $('#title').value = data.title || ''; $('#cta').value = data.cta || $('#cta').value; $('#duration').value = data.duration || '45'; $('#format').value = data.format || '9:16'; $('#style').value = data.style || 'news'; $('#narration').value = data.narration || ''; scenes = Array.isArray(data.scenes) ? data.scenes.map(s => ({ text: s.text || '', seconds: Number(s.seconds) || 6, img: s.img || null })) : []; if (data.render) { $('#renderQuality').value = data.render.quality || '720'; $('#fps').value = data.render.fps || '25'; $('#renderMode').value = data.render.mode || 'adapt'; $('#useIntro').checked = data.render.intro !== false; $('#useOutro').checked = data.render.outro !== false; $('#useSubtitles').checked = data.render.subtitles !== false; $('#voiceVolume').value = data.render.voiceVolume || '100'; $('#musicVolume').value = data.render.musicVolume || '12'; $('#musicPreset').value = data.render.musicPreset || 'cronaca'; updateMusicUi(); } renderStory(); updateCharCount(); bindRangeLabels(); await drawIdle(); $('#status').textContent = 'Progetto caricato. Rigenera la voce naturale prima del rendering finale.'; } catch (e) { $('#status').textContent = `Impossibile aprire il progetto: ${e.message}`; } }
 function exportStoryboard() { const data = getProjectData(); data.scenes = data.scenes.map(({ text, seconds }) => ({ text, seconds })); const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'voci-video-storyboard-v3.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }

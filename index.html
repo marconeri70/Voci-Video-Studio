@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f1115" />
-  <meta name="description" content="Voci Video Studio V3.1: articolo + foto reali → storyboard, voce naturale e Reel finale." />
-  <title>Voci Video Studio V3.1</title>
+  <meta name="description" content="Voci Video Studio V3.2: articolo + foto reali → storyboard, voce naturale e Reel finale." />
+  <title>Voci Video Studio V3.2</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./css/style.css" />
@@ -15,7 +15,7 @@
   <div class="brand">
     <img src="./assets/logo.svg" alt="Voci Video Studio" class="brandLogo" />
     <div>
-      <div class="brandLine"><h1>Voci Video Studio</h1><span class="versionBadge">V3.1</span></div>
+      <div class="brandLine"><h1>Voci Video Studio</h1><span class="versionBadge">V3.2</span></div>
       <p>Articolo + foto reali → storyboard, voce naturale e Reel finale.</p>
     </div>
   </div>
@@ -138,10 +138,29 @@
             <label for="musicPreset">Musica di sottofondo</label>
             <select id="musicPreset">
               <option value="none">Nessuna musica</option>
-              <option value="cronaca" selected>Cronaca sobria</option>
-              <option value="editoriale">Editoriale moderna</option>
-              <option value="citta">Città soft</option>
-              <option value="istituzionale">Istituzionale soft</option>
+              <optgroup label="📰 News / Cronaca">
+                <option value="alex_news" selected>Alex Besss — News Background</option>
+                <option value="audiodollar_news">AudioDollar — News Background</option>
+                <option value="elislane_news">Elislane — News</option>
+                <option value="sigma_news">SigmaMusicArt — News Background</option>
+                <option value="mountain_news">The Mountain — News Music</option>
+                <option value="breaking_news">Viacheslav Starostin — Breaking News</option>
+                <option value="news_sports">MusicTown — News & Sports</option>
+              </optgroup>
+              <optgroup label="🎙️ Jingle / Apertura">
+                <option value="elevenlabs_jingle">ElevenLabs — Headline Jingle</option>
+                <option value="mrwashington_jingle">MrWashington — News Jingle</option>
+              </optgroup>
+              <optgroup label="🎥 Documentario / Riflessivo">
+                <option value="better_today">Better Today — Documentary / Informative</option>
+                <option value="thinking_time">Thinking Time — Riflessiva</option>
+              </optgroup>
+              <optgroup label="🎛️ Basi originali Voci Video Studio">
+                <option value="cronaca">Cronaca sobria</option>
+                <option value="editoriale">Editoriale moderna</option>
+                <option value="citta">Città soft</option>
+                <option value="istituzionale">Istituzionale soft</option>
+              </optgroup>
               <option value="custom">Carica un mio MP3/WAV</option>
             </select>
           </div>
@@ -155,7 +174,7 @@
           <button class="ghost" id="stopMusic">■ Stop</button>
         </div>
         <audio id="musicPreviewPlayer" class="audioPlayer" controls preload="metadata"></audio>
-        <div class="hint">Le quattro basi incluse sono originali e integrate nel progetto. Puoi comunque caricare una tua traccia.</div>
+        <div class="hint">La libreria contiene gli audio che hai fornito più le quattro basi originali della webapp. Usa ▶ Ascolta musica per provarli prima del rendering.</div>
       </div>
       <div class="voiceSliders">
         <label>Volume voce <input id="voiceVolume" type="range" min="0" max="100" value="100" /><span id="voiceVolumeValue">100%</span></label>
@@ -177,7 +196,7 @@
     <h2>5. Anteprima Reel</h2>
     <div class="phoneWrap"><div class="phone"><canvas id="canvas" width="1080" height="1920"></canvas></div></div>
     <div class="overlayControls"><button class="primary" id="play">▶ Anteprima</button><button class="secondary" id="export">⬇ Esporta storyboard</button></div>
-    <div class="miniInfo"><strong>V3.1 — Reel completo</strong><span>Voce ElevenLabs, sottotitoli, libreria musicale integrata, intro/outro e rendering finale direttamente dal browser.</span></div>
+    <div class="miniInfo"><strong>V3.2 — Reel completo</strong><span>Voce ElevenLabs, sottotitoli, libreria musicale integrata, intro/outro e rendering finale direttamente dal browser.</span></div>
     <div class="footerNote">La chiave ElevenLabs resta nel Worker Cloudflare. Le foto e il rendering del video restano sul dispositivo.</div>
   </aside>
 </main>
