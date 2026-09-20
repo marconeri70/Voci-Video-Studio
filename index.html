@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <meta name="description" content="Voci Video Studio: articolo + foto reali → storyboard e Reel." />
+  <title>Voci Video Studio</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <img src="./assets/logo.svg" alt="Voci Video Studio" class="brandLogo" />
+    <div>
+      <h1>Voci Video Studio</h1>
+      <p>Articolo + foto reali → Reel con storyboard, voce e anteprima.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <h2>1. Contenuto</h2>
+      <div class="field">
+        <label for="article">Articolo o testo</label>
+        <textarea id="article" placeholder="Incolla qui l'articolo..."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="images">Foto reali (3–10 consigliate)</label>
+        <input id="images" type="file" accept="image/*" multiple />
+      </div>
+
+      <div class="row3">
+        <div class="field">
+          <label for="duration">Durata</label>
+          <select id="duration">
+            <option value="30">30 s</option>
+            <option value="45" selected>45 s</option>
+            <option value="60">60 s</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="style">Stile</label>
+          <select id="style">
+            <option value="news">Giornalistico</option>
+            <option value="civic">Civico / incisivo</option>
+            <option value="neutral">Neutro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="format">Formato</label>
+          <select id="format">
+            <option value="9:16">9:16 Reel</option>
+            <option value="1:1">1:1 Quadrato</option>
+            <option value="16:9">16:9 Orizzontale</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="title">Titolo breve</label>
+          <input id="title" placeholder="Generato automaticamente" />
+        </div>
+        <div class="field">
+          <label for="cta">CTA finale</label>
+          <input id="cta" value="Segnala ciò che accade nella tua zona — Segnala Facile" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="build">Crea storyboard</button>
+        <button class="secondary" id="demo">Carica demo</button>
+        <button class="danger" id="clear">Azzera</button>
+      </div>
+      <div class="status" id="status" aria-live="polite">Pronto.</div>
+    </div>
+
+    <div class="card sectionGap">
+      <h2>2. Storyboard</h2>
+      <div class="hint">Puoi modificare ogni testo prima dell'anteprima. Le foto restano originali: vengono solo ritagliate e animate con zoom/panoramica.</div>
+      <div id="story" class="story"></div>
+    </div>
+  </section>
+
+  <aside class="card previewCard">
+    <h2>3. Anteprima Reel</h2>
+    <div class="phoneWrap">
+      <div class="phone">
+        <canvas id="canvas" width="1080" height="1920"></canvas>
+      </div>
+    </div>
+
+    <div class="overlayControls">
+      <button class="primary" id="play">▶ Anteprima</button>
+      <button class="secondary" id="speak">🔊 Leggi copione</button>
+      <button class="secondary" id="export">⬇ Esporta storyboard</button>
+    </div>
+
+    <div class="footerNote">
+      Versione GitHub Pages: tutto gira nel browser. Nessuna chiave API è salvata nel progetto pubblico.
+    </div>
+  </aside>
+</main>
+
+<script src="./js/app.js" defer></script>
+</body>
+</html>
